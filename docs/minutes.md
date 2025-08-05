@@ -10,5 +10,5 @@
 - Anyone is welcome to be a member! Just let Michael know and he'll add you to the guild's Team channel.
 - Guild will tentatively continue meeting at 3 PM EST on Tuesdays, but this is not set in stone. Contact Michael if you have any scheduling issues.
 - Vote in the poll in the Teams channel on what topics you'd like to discuss
-	- If you have any other topic ideas, please add them to the [list of ideas](./schedule.md)!
+	- If you have any other topic ideas, please add them to the [list of ideas](./schedule.md/#other-topic-ideas)!
 - The hope is that people will use the guild's Teams channel to ask questions and connect with peers so we can work together to find solutions

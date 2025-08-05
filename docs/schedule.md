@@ -1,6 +1,6 @@
-📅 Analytics Engineering Guild – Meeting Topics Schedule
+# 📅 Analytics Engineering Guild – Meeting Topics Schedule
 
-August 5, 2025 – 03:00 PM EST to 04:00 PM EST
+## August 5, 2025 – 03:00 PM EST to 04:00 PM EST
 
 Topic: Establishing the Analytics Engineering Guild
 
@@ -12,7 +12,7 @@ Agenda:
 * Discuss meeting format/agenda
 * Look at upcoming schedule and find volunteers
 
-Other Topic Ideas:
+## Other Topic Ideas
 
 * DBT (irina?)
 * Data Modeling - Splash
