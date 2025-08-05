@@ -28,3 +28,5 @@ Other Topic Ideas:
 * Naming and why it matters
 * Testing
 * Dev vs Production
+* Automation
+* Who owns a data model, how does it get used across verticals?
