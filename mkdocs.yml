@@ -30,6 +30,7 @@ nav:
   - Guild Charter: charter.md
   - Schedule: schedule.md
   - Topics: topics.md
+  - Minutes: minutes.md
 
 extra_css:
   - stylesheets/extra.css
