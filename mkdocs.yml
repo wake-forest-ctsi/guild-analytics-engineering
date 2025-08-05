@@ -1,0 +1,38 @@
+site_name: Analytics Engineering Guild (MAGE) Codex
+theme:
+  name: material
+  icon:
+    logo: fontawesome/solid/hat-wizard 
+
+  palette: 
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7 
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    - search
+    - navigation.tabs
+    - toc.follow
+    - toc.integrate 
+    - code.highlighting
+    - content.action.edit
+
+nav:
+  - Home: index.md
+  - Guild Charter: charter.md
+  - Schedule: schedule.md
+  - Topics: topics.md
+
+extra_css:
+  - stylesheets/extra.css
+
+repo_url: https://github.com/wake-forest-ctsi/guild-analytics-engineering
+edit_uri: edit/master/docs/
