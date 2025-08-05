@@ -58,7 +58,7 @@ Guildmembers will be encouraged to contribute to a repository of best practices,
 ## (Where?)
 There is an open [Microsoft Team](https://teams.microsoft.com/l/team/19%3AFIu16PhqMaQ3YBXu5bwuepQnPh96NIb8uLGCS534FeQ1%40thread.tacv2/conversations?groupId=33b20e96-730b-4d07-b732-7db5d8a7689f&tenantId=3fc2e695-283d-4e4e-ad46-e437d11b18ab) which everyone is encouraged to use to ask questions, share knowledge, and get to know people.
 
-We also have our own [git repo](https://github.com/wake-forest-ctsi/guild-analytics-engineering)!  Most of what we produce, whether that be session summaries or guides, will live in the MAGE's repo.  If you're reading this right now it's probably in the repo. The repo is based on mkdocs and the resulting page is hosted at https://wake-forest-ctsi.github.io/guild-analytics-engineering/.
+We also have our own [git repo](https://github.com/wake-forest-ctsi/guild-analytics-engineering)!  Most of what we produce, whether that be session summaries or guides, will live in the MAGE's repo.  If you're reading this right now it's probably in the repo. The repo is based on mkdocs and the resulting page is hosted at [https://wake-forest-ctsi.github.io/guild-analytics-engineering/](https://wake-forest-ctsi.github.io/guild-analytics-engineering/).
 
 
 ## (When?)
