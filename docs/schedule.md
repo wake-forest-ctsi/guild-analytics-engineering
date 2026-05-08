@@ -14,28 +14,11 @@ Agenda:
 
 ## Other Topic Ideas
 
-* DBT (irina?)
-* Data Modeling - Splash
-* Data Modeling - DASH (Alex?)
-* Snowflake
-* Duckdb
-* Kickoff - Analytics Engineering in the modern data stack
-*     Roles, charter, name, volunteers, success metrics & feedback
-* I2B2 (Wendell?)
-* Working with data engineers to discover and have data available
-* Working with analysts to make sure the model suits the purpose, stakeholders business questions can be answered
-* Normalization
-* Naming and why it matters
-* Testing
-* Dev vs Production
-* Automation
-* Who owns a data model, how does it get used across verticals?
-
-
 Topic | Votes
 --- | ---
 Data Modeling Splash | ?
 Data Modeling DASH | 3
+Data Modeling I2B2 | ?
 Snowflake | 4
 Duckdb | 2
 Data Modeling - I2B2 | 3
@@ -49,3 +32,4 @@ Environments: Dev vs Production | 5
 Automation | 3
 Data model ownership and sharing responsibility across verticals | 1
 Data modeling - dimensional modeling | 
+Normalization | 
