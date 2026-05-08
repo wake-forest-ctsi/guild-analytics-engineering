@@ -73,3 +73,98 @@
 			Automation | 3
 			Data model ownership and sharing responsibility across verticals | 1
 			Data modeling - dimensional modeling | 
+
+## 8th May 2026 - Machine Learning and Data Models 🧭
+
+- 📜 Michael opened the meeting with a reminder to the guild that we have a Codex where we keep track of the learning we get from guild meetings, along with the meeting minutes collected by the Archivist. 
+	- This Codex may eventually be moved to SharePoint rather than MkDocs. 😢
+
+- 🎤 Michael opened the floor to general questions or for attendees to share any interesting things they've learned recently.
+	- Alex shared that he has found dbt's [persist_docs](https://docs.getdbt.com/reference/resource-configs/persist_docs?version=1.12) to be very useful. By adding the following lines to your `dbt_project.yml` file, the table and column descriptions you have in your model yaml files will be visible in Snowflake.  
+		```yaml
+		models:
+		  <resource_path>:
+			+persist_docs:
+			  relation: true
+			  columns: true
+		```
+
+- 👉 Michael asked attendees to let him know if there are other teammates who we think should be in the guild so that they can join as well.
+	- 📆 If you would like to be a permament member of the guild, let Michael know! He will add you to the Teams channel so you can get notified of upcoming meetings.
+
+- 🎥 *Recording started*: Zhitu presented on his experiences and challenges using machine learning against some of the big data models we have&mdash;the Research Data Mart and PCORNet. The slides are available on the guild's Teams channel.
+	- **Three Essential Pieces in an ML Model**:
+		1. The *input*, `x`, such as a PCORNet table, image, or text
+		2. The *model*, such as regression, random forest, or an LLM
+		3. The *output*, `y`, such as an image or score
+	- **Definitions**:
+		- *Training (fine tuning)*: Given `x` and `y`, figure out the model
+		- *Inference*: Given `x` and the model, figure out `y`
+	- **Overview of Steps**:
+		- Define problem `y`
+		- Find `x`, that is, collect and clean data---*This is the most important piece!*
+		- Do the ML---*This is less than 10% of the total effort*
+		- Evaluate the model
+		- Deploy and monitor
+	- **Example**: Zhitu showed the postpartum depression project as an example
+		- For this project, the target variable `y` is either 0 or 1 for whether the mother developed postpartum depression
+		- Since this isn't a field in the PCORNet model, they needed to use phenotyping to define `y`
+			- Upshot: There are different methods for constructing the target variable. He found that how `y` is defined is *critical* and even more important that which model you use. The result can vary greatly depending on how `y` is defined.
+	- **When defining the problem...**
+		- Zhitu shared an important lesson he learned in the case of the admission data. It was only towards the end of the work that he discovered that the label indicating whether a student received an interview was randomized based on the interview pool, meaning it can't be predicted!
+		- For the data request chatbot project, he and the team spent a lot of time learning about what the needs of the project are and how success should be defined and measured. These are good questions to ask when beginning ML work.
+		- For the deidentified notes projects, important questions to ask were what the level of accuracy should be and what the expected performance (speed) requirements are. These evolve along the way and inform the model.
+	- **When collecting and cleaning up the data...**
+		- The AMMI (postpartum depression) project used PCORNet, while the Splash project used the admission data
+		- Zhitu found that pairing up with a data engineer turned out to be critical! It's difficult to find the data yourself, so having a data engineer to work with is very helpful.
+		- Michael asked (and discussion ensued): If there's no data engineer, what makes a good model?
+			- Something like PCORNet is good. There are just a few tables and you can look up ICD10 or LOINC codes, and there's a lot of documentation
+			- The Splash project was difficult because we didn't have the same level of documentation and were figuring it out as we went, with limited access to the data owners
+			- Ideally, ML programmers would never need to go back to data owners  for clarification, but the question is how do we build a data model that achieves this
+	- **Unresolved problems**:
+		- Messy data, e.g., LOINC lab results 
+			- Found some data in PCORNet was mapped incorrectly since the unit is not consistent (so it's not the same measurement)
+			- The result of a lab is sometimes text, so he needed to figure out how to normalize between results like "neg" and "negative" or fix typos like "feww"
+		- Should data cleaning happen upstream at the database or downstream by the researcher or somewhere in between?
+			- Michael chimed in that researchers should define the data elements and their values. Then, either you have data that maps exactly, or you map unmatched data to "Other" and store the raw value somewhere. The responsibility lands on analytics engineer to try to figure out the mapping or to go to a subject expert if needed. 
+		- We need to save all data and document transforms from one place to another but how do we do that in reality? There's no clear solution.
+		- Something that may be obvious by eye, e.g., unit conversion, may be hard at scale
+		- Missing data, e.g. Splash essay scores
+	- **When evaluating the model...**
+		- Once you have `x` and `y`, how do you ensure the model runs okay?
+			- A good fit (ideal) model captures the pattern but doesnt fit all the points
+			- Overfitting means the model learns the noise, so the model fits nearly every point but it ends up being very complex
+			- In practice, the data is split into training and validation. Then, the model fits the training data but the validation on unseen data checks the generalization. This helps build a model that doesn't overfit
+		- Another challenge is doing a formal validation, which Zhitu explained using the data request chat bot as an example:
+			- The chat bot answers are not repeatable, so to test, the team created fake researchers and evaluated the bot
+			- They want the chat bot to output the same thing each time but this doesn't always happen
+			- Zhitu thanked the PM team for keeping track of how data requests evolve. Having this info is how the team is now able to evaluate the chat bot, so it's important to keep all this info!
+			- Vishnu asked: How are chat bot responses are evaluated?
+				- The team evaluated the final chat bot output with the ground truth. It doesn't need to be exact
+	- **When deploying and monitoring...**
+		- Tradeoff between using the HPC for fine tuning (which needs a lot of data) and inference versus using Snowflake API calls for inference using the best LLM model in Snowflake (but no fine tuning). The former is free but the latter costs money
+		- There's the challenge that the database itself keeps changing but a snapshot of all data at that point is needed for training to be able to fine tune the model. This will create a conflict later on when the model is in production
+	- Finally, Zhitu shared his favorite resources for learning ML. Please refer to the last slide of the presentation in Teams to find these useful resources!
+	
+- 👏 Thank you Zhitu for a great presentation! The guild had a great discussion after the presentation. Here are some of the highlights, but please refer to the recording for the full discussion..
+	- Michael asked: How do you get the results of the ML model back into the data model?
+		- Reference the model and weight and metadata in Snowflake for the inference and then write that back into Snowflake
+		- For Splash, write raw scores back to table in an ML output table. This then becomes a source for our dbt models. Ideally the whole process (dbt + ML) would run from start to end, but we have to break in the middle to run the ML part outside of building the data model. We don't have a good way to orchestrate this yet
+		- Alex mentioned that in Snowflake, it's possible to call ML functions directly in SQL and wondered if we could leverage this in dbt. Michael replied that this is something we could try, but this is costly so we aren't yet running everything on Snowflake.
+	- Vishnu asked: In any ML models that we developed so far, did we see any cases where a model performed well at the time but then degraded afterwards when new data was included? 
+		- For the deidentified notes project, the training set consists of several years of data. For new data, Zhitu noticed that computer names are different and these got missed by the model, so he did see a drift in performance if the underlying data is many years apart. 
+		- For the postpartum depression project, inference on the data didnt change very much since the data covered multiple years.
+	- Ginny asked: For the Splash project, how do past essays get saved? Where are the raw scores being populated from? 
+		- They are stored in ML analysis schema. Zhitu only ran only this once in November when the admission cycle was completed. If we wanted to do this weekly during the admission cycle, we would want to ensure that we only perform the computation for new data that comes in and append to the table, since it's costly to run on the full data (a few hundred dollars for 10k essays). Michael mentioned this can be achieved by an incremental build
+	- Michael asked: In the AMMI project, how did you start with PCORNet data and end up with a feature model? What were the issues with long versus wide rows?
+		- For the ML model, the input `x` is one row, e.g., one patient or one delivery. The columns are features, e.g, age or time of delivery. The PCORNet model doesn't look like this, so Zhitu used dbt to transform the raw PCORNet data into format needed for the ML model.
+		- This resulted in thousands of columns, which is too wide for SQL Server to handle. Zhitu had to store the data in a long table, then pivot the data in pandas before feeding it into the ML model. Luckily, Snowflake shouldn't have this issue and we can have as many columns as we want. 
+		- Michael mentioned that there's value in getting a feature model from data model that is already clean and fixed so that there's no need for extra transformations for the ML programmers to do. 
+	- Kanika asked: In the Splash project, how were the seven values scored and what did the model look like?
+		- The admission committee supplied the definitions for each of the values. Zhitu used a Llama model to score the essays based on the criteria. 
+	- Alex asked: In the Splash project, was the inference for each of the seven values done individually (run seven times) or was there one inference run that computed all seven scores?
+		- There were seven individual runs, one for each value. Zhitu found that the performance was better this way.
+
+- 📢 Michael asked for volunteers for the next presentation. You can choose from the list of possible topics that people are interested in (see the topics from the last meeting's minutes) or present on another topic that interests you! 
+	- This doesn't need to be a huge presentation, just a couple of slides and a discussion
+	- Please reach out to Michael if you'd like to present!
