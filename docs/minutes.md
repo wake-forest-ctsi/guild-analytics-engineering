@@ -146,7 +146,7 @@
 		- There's the challenge that the database itself keeps changing but a snapshot of all data at that point is needed for training to be able to fine tune the model. This will create a conflict later on when the model is in production
 	- Finally, Zhitu shared his favorite resources for learning ML. Please refer to the last slide of the presentation in Teams to find these useful resources!
 	
-- 👏 Thank you Zhitu for a great presentation! The guild had a great discussion after the presentation. Here are some of the highlights, but please refer to the recording for the full discussion..
+- 👏 Thank you Zhitu for a great presentation! The guild had a great discussion after the presentation. Here are some of the highlights, but please refer to the recording for the full discussion.
 	- Michael asked: How do you get the results of the ML model back into the data model?
 		- Reference the model and weight and metadata in Snowflake for the inference and then write that back into Snowflake
 		- For Splash, write raw scores back to table in an ML output table. This then becomes a source for our dbt models. Ideally the whole process (dbt + ML) would run from start to end, but we have to break in the middle to run the ML part outside of building the data model. We don't have a good way to orchestrate this yet
@@ -168,3 +168,74 @@
 - 📢 Michael asked for volunteers for the next presentation. You can choose from the list of possible topics that people are interested in (see the topics from the last meeting's minutes) or present on another topic that interests you! 
 	- This doesn't need to be a huge presentation, just a couple of slides and a discussion
 	- Please reach out to Michael if you'd like to present!
+
+## 19 August 2026 - OMOP Data Model 🌀
+
+- 🎥 *Recording started*: Michael opened up the meeting, and indicated he hopes to increase the frequency of guild meetings to once a month.
+
+- 🎤 Michael then opened the floor to general analytics questions or to any topics people wanted to share.
+	- Emmanuel and David had related questions about how to work with PHI in dbt and whether it could be stored in seed files.
+		- Michael responded that PHI should not be kept in seed files. Instead, the data should be stored in a file on SharePoint, and the data engineers can then load it into a raw schema in the database. This way, there's no chance of that PHI data getting uploaded to GitHub. (Michael also mentioned that we probably should have a common SharePoint folder to store data, which is something Karina may be working on.)
+		- Ginny mentioned that Alex has an existing process to load data from SharePoint into a raw schema so you can connect with him if you have questions. She also mentioned that if you need a short-term solution so you can work with the data to build your models, you can temporarily upload the file into your personal schema. Then, once the data has been loaded into the raw schema by the data engineers, you can switch schemas in your code.
+		- Alex mentioned that his current setup will periodically check for new files if you set a mode to check for files in a subfolder path, so you don't need to ask every time you drop a file (useful if you're doing this often).
+		- Michael also pointed out that we will need to deal with this a lot in the future, since every data request in SharePoint will have a folder where the requester can upload files with PHI, and we will need this data in Snowflake when working on fulfilling data requests.
+
+- 🌀 Next, Emmanuel presented on how he and the team have been building up the OMOP data model from our Clarity systems.
+	- OMOP (Observational Medical Outcomes Partnership) is from OHDSI, which is an open science community spanning academia, industry, and government with a goal of improving patient care.
+	- **The problem**: No two systems store data in the same way (not even our own two Epic instances!) so a query that works in one database may break in another.
+	- **The solution**: The [OMOP Common Data Model](https://ohdsi.github.io/CommonDataModel/)! Once data is transformed into this standard form, it can run on any database.
+		- There's a great overview of the six areas in which tables are grouped in the CDM if you follow the link above.
+	- Emmanuel walked us through *concepts*, *domains*, and the *source to concept map*. 
+		- *Concepts* are a unit of clinical meaning to which a unique ID is assigned, called the concept ID. 
+		- Each concept belongs to a *domain* and these domains do not overlap.
+		- We have data in our source system that we have to represent in OMOP, but the data in our Clarity instance will like differ from that in the Clarity instances at other sites, so we have to represent our source data in a standard format in order for it to be used at other sites. This is where the *source to concept map* comes into play.
+			- Emmanuel showed us an example in Athena, OMOP's concept browser, and explained that non-standard concepts need to be translated to a vocabulary that is standard in OMOP, like SNOMED codes.
+	- Emmanuel highlighted the portions of data domains we currently have mapped in our OMOP system, so please refer to the slides to see those!
+	- Emmanuel then delved deeper into the dbt code.
+		- He explained that because we're working with two Clarity systems (SE and AAH), they have a macro that unions both data together, allowing us to have one staging model that can be used everywhere. However, you can use the MDP source column if you need to restrict which site you want data from.
+		- He also explained that in these staging models, they also try to filter data before using it. For example, the patient model filters patients based on service area, whether they're a valid patient, etc.
+		- He pointed out the documention, done using [dbt doc blocks](https://docs.getdbt.com/docs/build/documentation?version=2) (allowing you to write your documentation in markdown and pass that to the yaml when running `dbt docs generate`), which contains information about models as well as the key decisions taken to build the model.
+			- Ginny asked if this documentation is hosted anywhere. Michael responded that first we need infrastructure from Will, and then we will host the documentation.
+		- He also showed the custom tests that have been created and which are reusable across models.
+
+- 👏 Thank you Emmanuel for a great presentation! The guild had some great Q&A and discussion after the presention. Highlights are below, but please refer to the recording for more details!
+	- Michael asked how we can keep any modifications we may need to make to the data model in step with the documentation. He proposed that we could just rely on the dbt docs to show the different columns, or we could bring in the OMOP docs as they're generated and modify those.
+	- Michael asked Emmanuel what his biggest worries currently are with converting data to the OMOP CDM.
+		- Emmanuel responded that the biggest challenge is the mapping process and putting things into the source to concept map. He highlighted flowsheets as an example. We already have some flowsheets linked to LOINC codes, which can then be linked to OMOP concepts, but we still have many flowsheets in our system that don't have any standard concepts attached to them.
+			- Additonally, flowsheets sometimes contains vitals, PHQs, and differences in data types, so this variety makes it difficult to put all the data into one model.
+			- David also pointed out that the data volumes involved with flowsheets are also huge
+		- Emmanuel also mentioned that they have encountered cases where there are differences between the southeast and the midwest since data is stored in different tables across different systems. In general, these cases are easy to fix with queries, for example having two separate intermediate queries for patient ethnic background.
+			- Michael suggested that instead of two intermediate models, we could have one model and join to both of the tables the two systems are using. Since, theoretically, the values in one of the tables will be null, we could do a coalesce. Then the code should still work if one system moves data to the other table. 
+	- Michael asked if there are any parts of the dbt code they'd like to go back and fix, given that they've learned a lot since starting this effort a year ago. 
+		- Emmanuel responded that to start with, in order to make things easeer, they've broken things up into similar groups and unioned them together, but in future it might be possible to merge these queries together. This should help speed up the run time for the long run, as well as keep logic consistent (since if you need to change logic in one model, you need to make sure you change it in the other, related models).
+	- Emmanuel asked about the logistics of creating incremental models in dbt since currently the source date isn't propagated from staging to intermediate models.
+		- Michael said the source date would need to be brought forward into the intermediate data. When you join models, you'll need to check the maximum of the new dates. If that is newer than the previous maximum, you know you may have new data in the row that needs to be updated/inserted. If not, then you don't need to do anything, so you save a lot of time with not doing as many inserts or updates (which is the goal of using incremental models).
+			- Michael also pointed out that there is a way in Snowflake to do this all for "free" where we don't have to do the work. This is by leveraging dynamic tables, and Snowflake tracks what's changed in metadata, so downstream tables can be updated based on that metadata rather than column data. However, our Snowflake currently isn't set up for this feature.
+
+- 📢 Michael asked that if people have any ideas for topics (skills, tools, models, or projects) that they want to learn more about in the guild meetings, please post your suggestion in the guild's Teams channel!
+	- He would appreciate volunteers to present on topics, otherwise he may reach out to people.
+	- Since the guild roles are meant to be rotated between members, Irina also motioned to pass the baton to a new Archivist. 🫡
+
+- 🧋 The guild also had a "water cooler" discussion at the end of the meeting.
+	- Irina mentioned how she's been enjoying using [uv](https://docs.astral.sh/uv/), which led to some discussion about using uv with dbt.
+
+		> Irina's basic workflow using uv:
+		>
+		>- `uv init` : Run this inside the root folder of the project to create the virtual environment (you only need to run this once)
+		>
+		> - `uv add <package_name>` :  Install a dependency inside the virtual environment
+		>
+		> - `uv run <command>` : Run any command within the virtual environment, e.g., `uv run python main.py`, `uv run dbt build ...`, etc.
+		>
+		> - `uv sync` : Recreates the virtual environment based on the toml and lock files (useful if you've deleted the virtual environment or are cloning an existing project from GitHub)
+		>
+		>Other great things:
+		>
+		> - It creates a toml file and a lock file with your dependencies (and sub-dependencies) and their pinned versions, along with the required python version. These are updated anytime you install new dependencies.
+		> 
+		> - You just need to prefix any command you run from the CLI with `uv run` and uv will automatically run the code in the virtual environment. (No need to remember to activate the environment first!)
+	
+	- Alex asked if we can have a guild session targeted towards aligning on our use of uv, dbt, and python, including ensuring everyone is using the same versions.
+	- Michael also mentioned that he's a fan of dbt fusion, but they have unfortunately moved the column lineage feature to the paid version (thought there is a similar feature in Snowflake that we can leverage).
+
+
